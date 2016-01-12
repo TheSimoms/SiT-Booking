@@ -76,20 +76,13 @@ class SitBooker:
 
         return time_slots
 
-    def wait_for_element_to_be_visible(self, tag_name, attribute_name, attribute_value, root_element=None):
-        self.browser.find_element_by_attribute(tag_name, attribute_name, attribute_value, root_element=root_element)
-
-        return self.browser.wait_for_element(
-            By.CSS_SELECTOR, "%s[%s=\"%s\"]" % (tag_name, attribute_name, attribute_value), visibility=True
-        )
-
     def open_booking_dialog(self, session_id):
-        self.wait_for_element_to_be_visible('div', 'data-session-id', session_id).click()
+        self.browser.wait_for_element_to_be_visible('div', 'data-session-id', session_id).click()
 
     def close_booking_dialog(self):
-        self.wait_for_element_to_be_visible('div', 'class', 'ibooking-dialog')
+        self.browser.wait_for_element_to_be_visible('div', 'class', 'ibooking-dialog')
 
-        self.wait_for_element_to_be_visible(
+        self.browser.wait_for_element_to_be_visible(
             'div',
             'class',
             'close-button'
@@ -167,9 +160,6 @@ class SitBooker:
         if session_ids is None:
             session_ids = self.find_best_court_layout_different_courts(date_time_courts)
 
-        if session_ids is None:
-            logging.warning('Couldn\'t find available courts at %s; %s' % (date, hours))
-
         return session_ids
 
     def make_booking(self, time_slots, date_and_hours):
@@ -178,8 +168,19 @@ class SitBooker:
 
             logging.info('Starting booking courts at %s; %s' % (date, hours))
 
+            available = True
+
             if date not in time_slots:
-                logging.warning('No available courts found at %s; %s' % (date, hours))
+                available = False
+            else:
+                for hour in hours:
+                    if hour not in time_slots[date]:
+                        available = False
+
+                        break
+
+            if not available:
+                logging.warning('Cannot book courts at %s; %s' % (date, hours))
 
                 return None
 
@@ -279,7 +280,7 @@ def main(debug=False):
 
                     dates_and_hours.append([date, hours])
         except IOError:
-            logging.error('Couldn\'t open booking times file' % booking_times_file_path)
+            logging.error('Could not open booking times file' % booking_times_file_path)
 
             sys.exit()
 

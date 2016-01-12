@@ -43,6 +43,13 @@ class Browser:
 
             return None
 
+    def wait_for_element_to_be_visible(self, tag_name, attribute_name, attribute_value, root_element=None):
+        self.find_element_by_attribute(tag_name, attribute_name, attribute_value, root_element=root_element)
+
+        return self.wait_for_element(
+            By.CSS_SELECTOR, "%s[%s=\"%s\"]" % (tag_name, attribute_name, attribute_value), visibility=True
+        )
+
     def enter_text_to_field(self, attribute_name, attribute_value, text, root_element=None):
         field = self.wait_for_element(attribute_name, attribute_value, root_element=root_element)
 
