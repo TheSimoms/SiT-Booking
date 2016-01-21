@@ -222,7 +222,12 @@ class Court:
 
 def weekday_to_date(weekday):
     today = datetime.date.today()
-    target_date = today + datetime.timedelta(abs(today.weekday() - WEEKDAY_INDICES[weekday]))
+    difference = WEEKDAY_INDICES[weekday] - today.weekday()
+
+    if difference < 0:
+        difference += 7
+
+    target_date = today + datetime.timedelta(difference)
 
     return str(target_date).replace('-', '')
 
