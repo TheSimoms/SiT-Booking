@@ -80,8 +80,6 @@ class SitBooker:
         self.browser.wait_for_element_to_be_visible('div', 'data-session-id', session_id).click()
 
     def close_booking_dialog(self):
-        self.browser.wait_for_element_to_be_visible('div', 'class', 'ibooking-dialog')
-
         self.browser.wait_for_element_to_be_visible(
             'div',
             'class',
@@ -254,7 +252,7 @@ def time_interval_to_half_hours(time_interval):
     return hours
 
 
-def main(debug=False):
+def main(debug=False, silent=True):
     booker = None
 
     try:
@@ -272,7 +270,7 @@ def main(debug=False):
 
             sys.exit()
 
-        booker = SitBooker(email, password)
+        booker = SitBooker(email, password, silent=silent)
 
         try:
             with open(booking_times_file_path) as booking_times_file:

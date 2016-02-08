@@ -7,7 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
 
 
-MAX_WAITING_TIME = 30
+MAX_WAITING_TIME = 5
 
 
 class Browser:
@@ -37,17 +37,19 @@ class Browser:
             )
         except TimeoutException:
             if terminal:
-                logging.error('Object not found; %s %s' % (attribute_name, attribute_value))
+                error_message = 'Object not found; %s %s' % (attribute_name, attribute_value)
 
-                raise Exception
+                logging.error(error_message)
+
+                raise Exception(error_message)
 
             return None
 
-    def wait_for_element_to_be_visible(self, tag_name, attribute_name, attribute_value, root_element=None):
-        self.find_element_by_attribute(tag_name, attribute_name, attribute_value, root_element=root_element)
+    def wait_for_element_to_be_visible(self, tag_name, attribute_name, attribute_value, root_element=None, terminal=False):
+        self.find_element_by_attribute(tag_name, attribute_name, attribute_value, root_element=root_element, terminal=terminal)
 
         return self.wait_for_element(
-            By.CSS_SELECTOR, "%s[%s=\"%s\"]" % (tag_name, attribute_name, attribute_value), visibility=True
+            By.CSS_SELECTOR, "%s[%s=\"%s\"]" % (tag_name, attribute_name, attribute_value), visibility=True, terminal=terminal
         )
 
     def enter_text_to_field(self, attribute_name, attribute_value, text, root_element=None):
@@ -55,11 +57,12 @@ class Browser:
 
         field.send_keys(text)
 
-    def find_element_by_attribute(self, tag_name, attribute_name, attribute_value, root_element=None):
+    def find_element_by_attribute(self, tag_name, attribute_name, attribute_value, root_element=None, terminal=False):
         return self.wait_for_element(
             By.CSS_SELECTOR,
             "%s[%s=\"%s\"]" % (tag_name, attribute_name, attribute_value),
-            root_element=root_element
+            root_element=root_element,
+            terminal=terminal
         )
 
     def find_element_by_id(self, element_id, root_element=None, terminal=True):
