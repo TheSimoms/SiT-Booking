@@ -39,12 +39,12 @@ class SitBooker:
         if self.browser.find_element_by_id('loginbutton') is not None:
             logging.info('Logging in')
 
-            self.browser.click_button('loginbutton')
+            self.browser.click_button_by_id('loginbutton')
 
             self.enter_login_information('edit-name', self.email)
             self.enter_login_information('edit-pass', self.password)
 
-            self.browser.click_button('edit-submit--3')
+            self.browser.click_button_by_id('edit-submit--3')
 
             logging.info('Logged in')
 
@@ -71,17 +71,11 @@ class SitBooker:
 
         return time_slots
 
-    def click_button(self, tag_name, attribute_name, attribute_value):
-        button = self.browser.wait_for_element_to_be_visible(tag_name, attribute_name, attribute_value)
-
-        if button is not None:
-            button.click()
-
     def open_booking_dialog(self, session_id):
-        self.click_button('div', 'data-session-id', session_id)
+        self.browser.click_button('div', 'data-session-id', session_id)
 
     def close_booking_dialog(self):
-        self.click_button('div', 'class', 'close-button')
+        self.browser.click_button('div', 'class', 'close-button')
 
     def book_session(self, session_id):
         self.open_booking_dialog(session_id)

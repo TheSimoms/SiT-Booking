@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
 MAX_WAITING_TIME = 10
@@ -12,7 +13,19 @@ MAX_WAITING_TIME = 10
 
 class Browser:
     def __init__(self, silent):
-        self.driver = PhantomJS() if silent else Firefox()
+        if silent:
+            user_agent = (
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) " +
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.57 Safari/537.36"
+            )
+
+            d_cap = dict(DesiredCapabilities.PHANTOMJS)
+            d_cap["phantomjs.page.settings.userAgent"] = user_agent
+
+            self.driver = PhantomJS(desired_capabilities=d_cap)
+        else:
+            self.driver = Firefox()
+
         self.driver.set_window_size(1920, 1080)
 
     def load_page(self, url):
@@ -61,8 +74,14 @@ class Browser:
     def find_element_by_css_selector(self, element_css, root_element=None, multiple=False):
         return self.find_element(By.CSS_SELECTOR, element_css, root_element=root_element, multiple=multiple)
 
-    def click_button(self, button_id, root_element=None):
+    def click_button_by_id(self, button_id, root_element=None):
         button = self.find_element_by_id(button_id, root_element=root_element)
+
+        if button is not None:
+            button.click()
+
+    def click_button(self, tag_name, attribute_name, attribute_value):
+        button = self.wait_for_element_to_be_visible(tag_name, attribute_name, attribute_value)
 
         if button is not None:
             button.click()
