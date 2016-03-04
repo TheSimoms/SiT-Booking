@@ -4,6 +4,7 @@ import sys
 import logging
 import datetime
 
+from collections import defaultdict
 from selenium.webdriver.common.by import By
 
 from browser import Browser
@@ -35,10 +36,10 @@ class SitBooker:
     def login(self):
         self.browser.load_page(self.url)
 
-        if self.browser.find_element_by_id('loginbutton', terminal=False) is not None:
+        if self.browser.find_element_by_id('loginbutton') is not None:
             logging.info('Logging in')
 
-            self.browser.click_button('loginbutton', )
+            self.browser.click_button('loginbutton')
 
             self.enter_login_information('edit-name', self.email)
             self.enter_login_information('edit-pass', self.password)
@@ -48,25 +49,19 @@ class SitBooker:
             logging.info('Logged in')
 
     def get_time_slots(self):
-        days_outer_container = self.browser.find_element_by_attribute('div', 'class', 'ibooking-all-days')
-
-        days_containers = [element for element in self.browser.find_element_by_css_selector(
-            'div[class*="ibooking-complete-day ibooking-complete-day-court ibooking-complete-day-"]',
-            root_element=days_outer_container,
+        days_containers = self.browser.find_element_by_css_selector(
+            'div[class*="ibooking-complete-day ibooking-complete-day-court"]',
             multiple=True
-        ) if element.get_attribute('class').find('fade-entire-day') < 0]
+        )
 
-        time_slots = dict()
+        time_slots = defaultdict(lambda: defaultdict(lambda: None))
 
-        for day in days_containers:
-            current_date = day.get_attribute('data-datetag')
-
-            time_slots[current_date] = dict()
+        for day_container in days_containers:
+            current_date = day_container.get_attribute('data-datetag')
 
             for hour in self.browser.find_element_by_css_selector(
-                'div[class*="ibooking-single-session ibooking-single-session-court-hover-box '
-                'ibooking-single-session-court-hover-box-squash"]',
-                root_element=day,
+                'div[class*="ibooking-single-session-court-hover-box-squash"]',
+                root_element=day_container,
                 multiple=True
             ):
                 time_of_day = self.browser.get_time_slot_time_of_day(hour)
@@ -76,71 +71,48 @@ class SitBooker:
 
         return time_slots
 
+    def click_button(self, tag_name, attribute_name, attribute_value):
+        button = self.browser.wait_for_element_to_be_visible(tag_name, attribute_name, attribute_value)
+
+        if button is not None:
+            button.click()
+
     def open_booking_dialog(self, session_id):
-        self.browser.wait_for_element_to_be_visible('div', 'data-session-id', session_id).click()
+        self.click_button('div', 'data-session-id', session_id)
 
     def close_booking_dialog(self):
-        self.browser.wait_for_element_to_be_visible(
-            'div',
-            'class',
-            'close-button'
-        ).click()
+        self.click_button('div', 'class', 'close-button')
 
     def book_session(self, session_id):
-        if session_id is None:
-            return
-
         self.open_booking_dialog(session_id)
         self.close_booking_dialog()
 
     @staticmethod
-    def find_best_court_layout_same_court(date_times):
+    def find_court_layout(date_times, outer_iterator, inner_iterator, reversed_iterator_order):
         session_ids = None
 
-        for court_index in range(3):
-            court_session_ids = [None] * len(date_times)
-
-            available = True
-
-            for date_time_index in range(len(date_times)):
-                court = date_times[date_time_index][court_index]
-
-                if court.available:
-                    court_session_ids[date_time_index] = court.data_session_id
-
-                    logging.debug('Court %d is free at %s' % (court_index+1, date_times[date_time_index]))
-                elif court.booked_self:
-                    logging.debug(
-                        'You have already booked court %d at %s' % (court_index+1, date_times[date_time_index]))
-                else:
-                    available = False
-
-                    break
-
-            if available:
-                session_ids = court_session_ids
-
-        return session_ids
-
-    @staticmethod
-    def find_best_court_layout_different_courts(date_times):
-        session_ids = None
-
-        for date_time_index in range(len(date_times)):
+        for o in outer_iterator:
             date_time_session_ids = [None] * len(date_times)
 
             available = True
 
-            for court_index in range(3):
+            for i in inner_iterator:
+                if reversed_iterator_order:
+                    date_time_index, court_index = i, o
+                else:
+                    date_time_index, court_index = o, i
+
                 court = date_times[date_time_index][court_index]
+
+                if court.booked_self:
+                    logging.debug(
+                        'You have already booked court %d at %s' % (court_index + 1, date_times[date_time_index])
+                    )
 
                 if court.available:
                     date_time_session_ids[date_time_index] = court.data_session_id
 
-                    logging.debug('Court %d is free at %s' % (court_index+1, date_times[date_time_index]))
-                elif court.booked_self:
-                    logging.debug(
-                        'You have already booked court %d at %s' % (court_index+1, date_times[date_time_index]))
+                    logging.debug('Court %d is free at %s' % (court_index + 1, date_times[date_time_index]))
                 else:
                     available = False
 
@@ -153,10 +125,11 @@ class SitBooker:
 
     def find_best_court_layout(self, time_slots, date, hours):
         date_time_courts = [time_slots[date][hour].courts for hour in hours]
-        session_ids = self.find_best_court_layout_same_court(date_time_courts)
+
+        session_ids = self.find_court_layout(date_time_courts, range(3), range(len(date_time_courts)), True)
 
         if session_ids is None:
-            session_ids = self.find_best_court_layout_different_courts(date_time_courts)
+            session_ids = self.find_court_layout(date_time_courts, range(len(date_time_courts)), range(3), False)
 
         return session_ids
 
