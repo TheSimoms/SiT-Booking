@@ -72,10 +72,10 @@ class SitBooker:
         return time_slots
 
     def open_booking_dialog(self, session_id):
-        self.browser.click_button('div', 'data-session-id', session_id)
+        self.browser.click_button_by_class('single-session-hover-box-thingy-%s' % session_id)
 
     def close_booking_dialog(self):
-        self.browser.click_button('div', 'class', 'close-button')
+        self.browser.click_button_by_class('close-button')
 
     def book_session(self, session_id):
         self.open_booking_dialog(session_id)
@@ -84,11 +84,11 @@ class SitBooker:
     @staticmethod
     def find_court_layout(date_times, outer_iterator, inner_iterator, reversed_iterator_order):
         session_ids = None
+        date_time_session_ids = [None] * len(date_times)
 
         for o in outer_iterator:
-            date_time_session_ids = [None] * len(date_times)
-
-            available = True
+            if reversed_iterator_order:
+                date_time_session_ids = [None] * len(date_times)
 
             for i in inner_iterator:
                 if reversed_iterator_order:
@@ -108,11 +108,10 @@ class SitBooker:
 
                     logging.debug('Court %d is free at %s' % (court_index + 1, date_times[date_time_index]))
                 else:
-                    available = False
+                    if reversed_iterator_order:
+                        break
 
-                    break
-
-            if available:
+            if None not in date_time_session_ids:
                 session_ids = date_time_session_ids
 
         return session_ids

@@ -22,7 +22,10 @@ class Browser:
             d_cap = dict(DesiredCapabilities.PHANTOMJS)
             d_cap["phantomjs.page.settings.userAgent"] = user_agent
 
-            self.driver = PhantomJS(desired_capabilities=d_cap)
+            self.driver = PhantomJS(
+                desired_capabilities=d_cap,
+                service_args=['--ssl-protocol=any']
+            )
         else:
             self.driver = Firefox()
 
@@ -65,17 +68,24 @@ class Browser:
             "%s[%s=\"%s\"]" % (tag_name, attribute_name, attribute_value), root_element=root_element
         )
 
-    def find_element_by_id(self, element_id, root_element=None):
-        return self.find_element(By.ID, element_id, root_element=root_element)
+    def find_element_by_id(self, element_id, root_element=None, visibility=False):
+        return self.find_element(By.ID, element_id, root_element=root_element, visibility=visibility)
 
-    def find_element_by_class(self, class_name, root_element=None):
-        return self.find_element(By.CLASS_NAME, class_name, root_element=root_element)
+    def find_element_by_class(self, class_name, root_element=None, visibility=False):
+        return self.find_element(By.CLASS_NAME, class_name, root_element=root_element, visibility=visibility)
 
-    def find_element_by_css_selector(self, element_css, root_element=None, multiple=False):
-        return self.find_element(By.CSS_SELECTOR, element_css, root_element=root_element, multiple=multiple)
+    def find_element_by_css_selector(self, element_css, root_element=None, multiple=False, visibility=False):
+        return self.find_element(By.CSS_SELECTOR, element_css, root_element=root_element,
+                                 multiple=multiple, visibility=visibility)
 
     def click_button_by_id(self, button_id, root_element=None):
         button = self.find_element_by_id(button_id, root_element=root_element)
+
+        if button is not None:
+            button.click()
+
+    def click_button_by_class(self, button_class, root_element=None):
+        button = self.find_element_by_class(button_class, root_element=root_element, visibility=True)
 
         if button is not None:
             button.click()
