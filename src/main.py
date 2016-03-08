@@ -57,6 +57,9 @@ class SitBooker:
         time_slots = defaultdict(lambda: defaultdict(lambda: None))
 
         for day_container in days_containers:
+            if len(self.browser.find_element_by_class('ibooking-book-after', root_element=day_container).text) > 1:
+                continue
+
             current_date = day_container.get_attribute('data-datetag')
 
             for hour in self.browser.find_element_by_css_selector(

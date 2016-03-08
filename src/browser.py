@@ -29,7 +29,7 @@ class Browser:
         else:
             self.driver = Firefox()
 
-        self.driver.set_window_size(1920, 1080)
+        self.driver.set_window_size(1360, 768)
 
     def load_page(self, url):
         self.driver.get(url)
