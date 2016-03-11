@@ -15,8 +15,8 @@ class Browser:
     def __init__(self, silent):
         if silent:
             user_agent = (
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) " +
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.57 Safari/537.36"
+                'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 ' +
+                '(KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36'
             )
 
             d_cap = dict(DesiredCapabilities.PHANTOMJS)
