@@ -1,4 +1,5 @@
 import logging
+import requests
 
 from selenium.webdriver import PhantomJS, Firefox
 from selenium.webdriver.common.by import By
@@ -13,6 +14,8 @@ MAX_WAITING_TIME = 10
 
 class Browser:
     def __init__(self, silent):
+        logging.info('Starting browser')
+
         if silent:
             user_agent = (
                 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 ' +
@@ -29,10 +32,27 @@ class Browser:
         else:
             self.driver = Firefox()
 
+        logging.info('Browser started')
+
         self.driver.set_window_size(1360, 768)
 
     def load_page(self, url):
+        logging.info('Loading page: %s' % url)
+
         self.driver.get(url)
+
+        logging.info('Page loaded')
+
+    def make_post_request(self, url, parameters=None):
+        if parameters is None:
+            parameters = {}
+
+        cookies = {}
+
+        for cookie in self.driver.get_cookies():
+            cookies[cookie['name']] = cookie['value']
+
+        return requests.post(url, data=parameters, cookies=cookies).status_code == 200
 
     def close(self):
         self.driver.close()

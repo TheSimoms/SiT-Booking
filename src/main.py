@@ -81,8 +81,14 @@ class SitBooker:
         self.browser.click_button_by_class('close-button')
 
     def book_session(self, session_id):
-        self.open_booking_dialog(session_id)
-        self.close_booking_dialog()
+        return self.browser.make_post_request(
+            'https://www.sit.no/ibooking-api/callback/book-session',
+            {
+                'sessionID': str(session_id),
+                'sendSMS': '0',
+                'isGroup': 'true'
+            }
+        )
 
     @staticmethod
     def find_court_layout(date_times, outer_iterator, inner_iterator, reversed_iterator_order):
@@ -102,11 +108,12 @@ class SitBooker:
                 court = date_times[date_time_index][court_index]
 
                 if court.booked_self:
+                    date_time_session_ids[date_time_index] = court.data_session_id
+
                     logging.debug(
                         'You have already booked court %d at %s' % (court_index + 1, date_times[date_time_index])
                     )
-
-                if court.available:
+                elif court.available:
                     date_time_session_ids[date_time_index] = court.data_session_id
 
                     logging.debug('Court %d is free at %s' % (court_index + 1, date_times[date_time_index]))
