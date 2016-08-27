@@ -4,9 +4,12 @@ A Python script that books squash hours at SiT.no automatically.
 
 Tested with Python 2.7 and 3.4.
 
+## Packages required
+* PhantomJS
+
 ## Python packages required
 * Selenium
-* PhantomJS
+* Requests
 
 ## Config file
 
