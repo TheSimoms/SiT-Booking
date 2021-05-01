@@ -1,3 +1,7 @@
+# Disclaimer
+
+This project has not been tested nor updated in several years. There is no guarantee that it still works.
+
 # Sit Booking
 
 A Python script that books squash hours at SiT.no automatically.
